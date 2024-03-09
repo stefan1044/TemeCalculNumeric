@@ -3,14 +3,16 @@ import math
 
 
 def get_machine_precision():
-    u = 1
+    u = 0.1
+    m = 0
     while 1 + u != 1:
         u = u / 10
+        m += 1
 
-    return u
+    return m
 
 
-machine_precision = get_machine_precision()
+machine_precision = 10 ** (-get_machine_precision())
 # Exercitiu 1
 print(machine_precision)
 
@@ -19,6 +21,7 @@ y = machine_precision
 z = machine_precision
 # Exercitiu 2
 print((x + y) + z == x + (y + z))
+print((0.1 * 0.2) * 0.3 == 0.1 * (0.2 * 0.3))
 
 
 def T(i, a):
@@ -28,7 +31,7 @@ def T(i, a):
         return (945 * a - 105 * pow(a, 3) + pow(a, 5)) / (945 - 420 * pow(a, 2) + 15 * pow(a, 4))
     elif i == 6:
         return (10395 * a - 1260 * pow(a, 3) + 21 * pow(a, 5)) / (
-                    10395 - 4725 * pow(a, 2) + 210 * pow(a, 4) - pow(a, 6))
+                10395 - 4725 * pow(a, 2) + 210 * pow(a, 4) - pow(a, 6))
     elif i == 7:
         return (135135 * a - 17325 * pow(a, 3) + 378 * pow(a, 5) - pow(a, 7)) / (
                 135135 - 62370 * pow(a, 2) + 3150 * pow(a, 4) - 28 * pow(a, 6))
@@ -59,7 +62,6 @@ for function in range(4, 10):
     tanErrors[function] = 0
     sinErrors[function] = 0
     cosErrors[function] = 0
-
 
 for iteration in range(100001):
     test_case = generate_random()
