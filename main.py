@@ -1,84 +1,211 @@
-import random
-import math
+import numpy as np
+
+eps = 10 ** (-11)
 
 
-def get_machine_precision():
-    u = 0.1
-    m = 0
-    while 1 + u != 1:
-        u = u / 10
-        m += 1
+def read_A(filename):
+    f = open(filename, "r")
 
-    return m
+    elements_default = []
+    valori = []
+    ind_col = []
+
+    t = f.readline()
+    size = int(t)
+
+    for i in range(size):
+        elements_default.append([])
+        valori.append([])
+        ind_col.append([])
+
+    t = f.readline()
+    while t is not None and t.strip() != "":
+        values = t.split(",")
+
+        value = float(values[0].strip())
+        i_index = int(values[1].strip())
+        j_index = int(values[2].strip())
+
+        # Default
+        element_exists = False
+        for j in range(len(elements_default[i_index])):
+            if elements_default[i_index][j][1] == j_index:
+                element_exists = True
+                elements_default[i_index][j][0] += value
+                if abs(elements_secondary[i_index][j][0]) < eps:
+                    elements_default[i_index].remove(elements_secondary[i_index][j][0])
+                break
+
+        if not element_exists:
+            elements_default[i_index].append([value, j_index])
+
+        # Val + Col
+        element_exists = False
+        for j in range(len(ind_col[i_index])):
+            if ind_col[j] == j_index:
+                element_exists = True
+                valori[i_index][j] += value
+                if abs(valori[i_index][j]) < eps:
+                    valori[i_index].remove(valori[i_index][j])
+                    ind_col[i_index].remove(j_index)
+                break
+
+        if not element_exists:
+            valori[i_index].append(value)
+            ind_col[i_index].append(j_index)
+
+        t = f.readline()
+
+    f.close()
+
+    for i in range(size):
+        elements_default[i].sort(key=lambda value: value[0])
+
+    return elements_default, valori, ind_col, size
 
 
-machine_precision = 10 ** (-get_machine_precision())
-# Exercitiu 1
-print(machine_precision)
+def read_B(filename):
+    f = open(filename, "r")
 
-x = 1.0
-y = machine_precision
-z = machine_precision
-# Exercitiu 2
-print((x + y) + z == x + (y + z))
-print((0.1 * 0.2) * 0.3 == 0.1 * (0.2 * 0.3))
+    b = []
 
+    t = f.readline()
 
-def T(i, a):
-    if i == 4:
-        return (105 * a - 10 * pow(a, 3)) / (105 - 45 * pow(a, 2) + pow(a, 4))
-    elif i == 5:
-        return (945 * a - 105 * pow(a, 3) + pow(a, 5)) / (945 - 420 * pow(a, 2) + 15 * pow(a, 4))
-    elif i == 6:
-        return (10395 * a - 1260 * pow(a, 3) + 21 * pow(a, 5)) / (
-                10395 - 4725 * pow(a, 2) + 210 * pow(a, 4) - pow(a, 6))
-    elif i == 7:
-        return (135135 * a - 17325 * pow(a, 3) + 378 * pow(a, 5) - pow(a, 7)) / (
-                135135 - 62370 * pow(a, 2) + 3150 * pow(a, 4) - 28 * pow(a, 6))
-    elif i == 8:
-        return (2027025 * a - 27027 * pow(a, 3) + 6930 * pow(a, 5) - 36 * pow(a, 7)) / (
-                2027025 - 945945 * pow(a, 2) + 51975 * pow(a, 4) - 630 * pow(a, 6) + pow(a, 8))
-    elif i == 9:
-        return (34459425 * a - 4729725 * pow(a, 3) + 135135 * pow(a, 5) - 990 * pow(a, 7) + pow(a, 9)) / (
-                34459425 - 16216200 * pow(a, 2) + 945945 * pow(a, 4) - 13860 * pow(a, 6) + 45 * pow(a, 8))
+    t = f.readline()
+    while t is not None and t.strip() != "":
+        b.append(float(t.strip()))
+        t = f.readline()
+
+    f.close()
+
+    return b
 
 
-def sin(i, a):
-    return T(i, a) / (1 + T(i, a)) ** 0.5
+elements_default, valori, ind_col, size = read_A("a_1.txt")
+b = read_B("b_1.txt")
 
 
-def cos(i, a):
-    return 1 / (1 + T(i, a)) ** 0.5
+has_non_null_diag = True
+for i in range(0, size):
+    if not has_non_null_diag:
+        break
+    for element in elements_default[i]:
+        if element[1] == i:
+            if abs(element[0]) < eps:
+                has_non_null_diag = False
+            break
+
+print(has_non_null_diag)
+if not has_non_null_diag:
+    exit(1)
 
 
-def generate_random():
-    return random.uniform(-1 * math.pi / 2, math.pi / 2)
+def formula_3(reprezentare, x_ds):
+    norm = 0
+
+    if reprezentare == 1:
+        for i in range(size):
+            elem_diag = None
+            suma_default = 0
+            for element in elements_default[i]:
+                if element[1] == i:
+                    elem_diag = element[0]
+                else:
+                    suma_default += element[0] * x_ds[element[1]]
+
+            value_default = (b[i] - suma_default) / elem_diag
+            norm += (value_default - x_ds[i]) ** 2
+            x_ds[i] = value_default
+    elif reprezentare == 2:
+        for i in range(size):
+            elem_diag = None
+            suma_default = 0
+            for element, col in zip(valori[i], ind_col[i]):
+                if col == i:
+                    elem_diag = element
+                else:
+                    suma_default += element * x_ds[col]
+
+            value_default = (b[i] - suma_default) / elem_diag
+            norm += (value_default - x_ds[i]) ** 2
+            x_ds[i] = value_default
+
+    return norm ** 0.5
 
 
-tanErrors = {}
-sinErrors = {}
-cosErrors = {}
-for function in range(4, 10):
-    tanErrors[function] = 0
-    sinErrors[function] = 0
-    cosErrors[function] = 0
+def calculate_norm(a, b):
+    norm = 0
+    for i in range(size):
+        norm += (a[i] - b[i]) ** 2
+    norm = norm ** 0.5
 
-for iteration in range(100001):
-    test_case = generate_random()
-    for function in range(4, 10):
-        tanErrors[function] = tanErrors[function] + abs(T(function, test_case) - math.tan(test_case))
-        sinErrors[function] = sinErrors[function] + abs(sin(function, test_case) - math.sin(test_case))
-        cosErrors[function] = cosErrors[function] + abs(cos(function, test_case) - math.cos(test_case))
+    return norm
 
-tanResults = [(k, v / 10000) for k, v in tanErrors.items()]
-tanResults = sorted(tanResults, key=lambda pair: pair[1])
+def gauss_seidel(matrice):
+    k = 1
+    x_ds = [float(i) for i in range(1, size + 1)]
+    norm = formula_3(matrice, x_ds)
 
-sinResults = [(k, v / 10000) for k, v in sinErrors.items()]
-sinResults = sorted(sinResults, key=lambda pair: pair[1])
+    while eps <= norm <= 100000000 and k < 10000:
+        norm = formula_3(matrice, x_ds)
+        k += 1
 
-cosResults = [(k, v / 10000) for k, v in cosErrors.items()]
-cosResults = sorted(cosResults, key=lambda pair: pair[1])
+    if norm < eps:
+        return x_ds, k
+    else:
+        return None
 
-print(tanResults)
-print(sinResults)
-print(cosResults)
+
+x, iterations = gauss_seidel(2)
+print(x)
+print(iterations)
+
+A_x_gs_default = []
+A_x_gs_secondary = []
+for i in range(size):
+    elem_default = 0
+    for element in elements_default[i]:
+        elem_default += element[0] * x[element[1]]
+    A_x_gs_default.append(elem_default)
+
+    elem_secondary = 0
+    for j in range(len(valori[i])):
+        elem_secondary += valori[i][j] * x[ind_col[i][j]]
+    A_x_gs_secondary.append(elem_secondary)
+
+norm_default = sum([(A_x_gs_default[i] - b[i]) ** 2 for i in range(size)]) ** 0.5
+norm_secondary = sum([(A_x_gs_secondary[i] - b[i]) ** 2 for i in range(size)]) ** 0.5
+
+print(norm_default)
+print(norm_secondary)
+
+
+a, _, _, size = read_A("a.txt")
+b, _, _, _ = read_A("b.txt")
+aplusb, _, _, _ = read_A("aplusb.txt")
+
+for i in range(size):
+    for j in range(len(b[i])):
+        is_in_a = False
+
+        for k in range(len(a[i])):
+            if b[i][j][1] == a[i][k][1]:
+                is_in_a = True
+                a[i][k][0] += b[i][j][0]
+                break
+
+        if not is_in_a:
+            a[i].append([b[i][j][0], b[i][j][1]])
+
+for i in range(size):
+    for element1 in aplusb[i]:
+        has_element = False
+        for element2 in a[i]:
+            if element1[0] == element2[0] and element1[1] == element2[1]:
+                has_element = True
+
+        if not has_element:
+            print(element1)
+            print("Diferite")
+
+print("Sunt la fel")
