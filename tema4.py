@@ -1,5 +1,3 @@
-import numpy as np
-
 eps = 10 ** (-11)
 
 
@@ -32,8 +30,8 @@ def read_A(filename):
             if elements_default[i_index][j][1] == j_index:
                 element_exists = True
                 elements_default[i_index][j][0] += value
-                if abs(elements_secondary[i_index][j][0]) < eps:
-                    elements_default[i_index].remove(elements_secondary[i_index][j][0])
+                if abs(elements_default[i_index][j][0]) < eps:
+                    elements_default[i_index].remove(elements_default[i_index][j][0])
                 break
 
         if not element_exists:
@@ -83,7 +81,6 @@ def read_B(filename):
 
 elements_default, valori, ind_col, size = read_A("a_1.txt")
 b = read_B("b_1.txt")
-
 
 has_non_null_diag = True
 for i in range(0, size):
@@ -141,6 +138,7 @@ def calculate_norm(a, b):
 
     return norm
 
+
 def gauss_seidel(matrice):
     k = 1
     x_ds = [float(i) for i in range(1, size + 1)]
@@ -178,7 +176,6 @@ norm_secondary = sum([(A_x_gs_secondary[i] - b[i]) ** 2 for i in range(size)]) *
 
 print(norm_default)
 print(norm_secondary)
-
 
 a, _, _, size = read_A("a.txt")
 b, _, _, _ = read_A("b.txt")
